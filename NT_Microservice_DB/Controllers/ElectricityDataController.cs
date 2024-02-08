@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -21,50 +22,42 @@ namespace NT_Microservice_DB.Controllers
             _context = context;
         }
 
-        // GET: api/ElectricityData
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ElectricityData>>> GetElectricityItems()
-        {
-            return await _context.ElectricityDatas.ToListAsync();
-        }
-
-
         // POST: api/ElectricityData
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ElectricityData>> PostElectricityData([FromBody] ElectricityDataRequestModel requestModel)
+        public async Task<ActionResult<ElectricityData>> PostElectricityData([FromBody] string jsonData)
         {
             try
             {
-                // Käsittele requestModel.prices -lista
-                foreach (var item in requestModel.prices)
+                // Deserialisoidaan JSON-muotoinen data
+                DataSet dataSet = JsonConvert.DeserializeObject<DataSet>(jsonData);
+                DataTable dataTable = dataSet.Tables["prices"];
+
+                // Käydään data "rivi" kerrallaan läpi ja lisätään tietokantaan
+                foreach (DataRow row in dataTable.Rows)
                 {
+                    decimal price = Convert.ToDecimal(row["price"]);
+                    DateTime startDate = Convert.ToDateTime(row["startDate"]);
+                    DateTime endDate = Convert.ToDateTime(row["endDate"]);
+
                     var electricityData = new ElectricityData
                     {
-                        price = item.price,
-                        startDate = item.startDate,
-                        endDate = item.endDate
+                        Price = price,
+                        StartDate = startDate,
+                        EndDate = endDate
                     };
 
-                    _context.ElectricityDatas.Add(electricityData);
+                    // Tallennetaan deserialisoitu data tietokantaan
+                    _context.ElectricityData.Add(electricityData);
+                    await _context.SaveChangesAsync();
                 }
 
-                await _context.SaveChangesAsync();
 
-                return Ok();
+                return null;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Virhe tallennettaessa dataa tietokantaan: {ex.Message}");
+                return BadRequest(ex.Message);
             }
-        }
-
-
-
-
-        private bool ElectricityItemExists(int id)
-        {
-            return _context.ElectricityDatas.Any();
         }
     }
 }
