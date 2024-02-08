@@ -46,7 +46,6 @@ namespace NT_Microservice_DB.Controllers
                         EndDate = endDate
                     };
 
-                    Console.WriteLine(row["price"] + " - " + row["startDate"]);
                     // Tallennetaan deserialisoitu data tietokantaan
                     _context.ElectricityData.Add(electricityData);
                     await _context.SaveChangesAsync();
