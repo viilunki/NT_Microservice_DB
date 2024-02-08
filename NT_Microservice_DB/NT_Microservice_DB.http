@@ -1,0 +1,6 @@
+@NT_Microservice_DB_HostAddress = http://localhost:5096
+
+GET {{NT_Microservice_DB_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
