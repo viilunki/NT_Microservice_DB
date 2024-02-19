@@ -4,7 +4,7 @@ namespace NT_Microservice_DB.Models
 {
     public class ElectricityContext : DbContext
     {
-        public DbSet<ElectricityData> ElectricityData { get; set; }
+        public DbSet<ElectricityData> ElectricityDatas { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -15,16 +15,15 @@ namespace NT_Microservice_DB.Controllers
     [ApiController]
     public class ElectricityDataController : ControllerBase
     {
-        private readonly ElectricityContext _context;
-
-        public ElectricityDataController(ElectricityContext context)
+        ElectricityContext electricitydb;
+        public ElectricityDataController()
         {
-            _context = context;
+            electricitydb = new ElectricityContext();
         }
 
         // POST: api/ElectricityData
         [HttpPost]
-        public async Task<ActionResult<ElectricityData>> PostElectricityData([FromBody] string jsonData)
+        public async Task<IActionResult> Post([FromBody] string jsonData)
         {
             try
             {
@@ -47,12 +46,12 @@ namespace NT_Microservice_DB.Controllers
                     };
 
                     // Tallennetaan deserialisoitu data tietokantaan
-                    _context.ElectricityData.Add(electricityData);
-                    await _context.SaveChangesAsync();
+                    electricitydb.ElectricityDatas.Add(electricityData);
+                    await electricitydb.SaveChangesAsync();
                 }
 
 
-                return null;
+                return Ok(jsonData);
             }
             catch (Exception ex)
             {
