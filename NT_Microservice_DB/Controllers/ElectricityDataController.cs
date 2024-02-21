@@ -7,6 +7,7 @@ using NT_Microservice_DB.Models;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
 
 
 namespace NT_Microservice_DB.Controllers
@@ -34,13 +35,20 @@ namespace NT_Microservice_DB.Controllers
             {
                 foreach (var hourPrice in jsonData.Prices)
                 {
+                    bool alreadyExists = await CheckIfPriceExistsInDb(hourPrice);
+
+                    if (alreadyExists)
+                        continue;
+                        
+
                     _electricityContext.ElectricityDatas.Add(hourPrice.ToEntity());
                 }
 
                 await _electricityContext.SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                await Console.Out.WriteLineAsync(ex.ToString());
                 return StatusCode(StatusCodes.Status500InternalServerError, "Virhe tallennettaessa dataa tietokantaan.");
                 throw;
             }
@@ -48,5 +56,12 @@ namespace NT_Microservice_DB.Controllers
             return Ok("Data vastaanotettu ja käsitelty.");
 
         }
+
+        private async Task<bool> CheckIfPriceExistsInDb(PriceInfo priceInfo)
+        {
+            return await _electricityContext.ElectricityDatas.AnyAsync(x => x.StartDate == priceInfo.StartDate && x.EndDate == priceInfo.EndDate);
+        }
     }
+
+    
 }
