@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using NT_Microservice_DB.DTO;
+using NT_Microservice_DB.Extensions;
 using NT_Microservice_DB.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace NT_Microservice_DB.Controllers
 {
@@ -15,48 +15,38 @@ namespace NT_Microservice_DB.Controllers
     [ApiController]
     public class ElectricityDataController : ControllerBase
     {
-        ElectricityContext electricitydb;
-        public ElectricityDataController()
+        private ElectricityContext _electricityContext;
+        public ElectricityDataController(ElectricityContext electricityContext)
         {
-            electricitydb = new ElectricityContext();
+            _electricityContext = electricityContext;
         }
 
         // POST: api/ElectricityData
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] string jsonData)
+        public async Task<IActionResult> Post([FromBody] ElectricityPriceDataDtoIn jsonData)
         {
+            if (jsonData == null)
+            {
+                return BadRequest("Dataa ei vastaanotettu.");
+            }
+
             try
             {
-                // Deserialisoidaan JSON-muotoinen data
-                DataSet dataSet = JsonConvert.DeserializeObject<DataSet>(jsonData);
-                DataTable dataTable = dataSet.Tables["prices"];
-
-                // Käydään data "rivi" kerrallaan läpi ja lisätään tietokantaan
-                foreach (DataRow row in dataTable.Rows)
+                foreach (var hourPrice in jsonData.Prices)
                 {
-                    decimal price = Convert.ToDecimal(row["price"]);
-                    DateTime startDate = Convert.ToDateTime(row["startDate"]);
-                    DateTime endDate = Convert.ToDateTime(row["endDate"]);
-
-                    var electricityData = new ElectricityData
-                    {
-                        Price = price,
-                        StartDate = startDate,
-                        EndDate = endDate
-                    };
-
-                    // Tallennetaan deserialisoitu data tietokantaan
-                    electricitydb.ElectricityDatas.Add(electricityData);
-                    await electricitydb.SaveChangesAsync();
+                    _electricityContext.ElectricityDatas.Add(hourPrice.ToEntity());
                 }
 
-
-                return Ok(jsonData);
+                await _electricityContext.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Virhe tallennettaessa dataa tietokantaan.");
+                throw;
             }
+
+            return Ok("Data vastaanotettu ja käsitelty.");
+
         }
     }
 }

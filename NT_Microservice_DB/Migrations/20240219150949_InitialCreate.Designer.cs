@@ -12,7 +12,7 @@ using NT_Microservice_DB.Models;
 namespace NT_Microservice_DB.Migrations
 {
     [DbContext(typeof(ElectricityContext))]
-    [Migration("20240208090412_InitialCreate")]
+    [Migration("20240219150949_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,11 +27,12 @@ namespace NT_Microservice_DB.Migrations
 
             modelBuilder.Entity("NT_Microservice_DB.Models.ElectricityData", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -42,9 +43,12 @@ namespace NT_Microservice_DB.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
-                    b.ToTable("ElectricityData");
+                    b.ToTable("ElectricityDatas");
                 });
 #pragma warning restore 612, 618
         }
