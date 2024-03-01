@@ -8,6 +8,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using System.IO;
 
 
 namespace NT_Microservice_DB.Controllers
@@ -61,7 +62,16 @@ namespace NT_Microservice_DB.Controllers
         {
             return await _electricityContext.ElectricityDatas.AnyAsync(x => x.StartDate == priceInfo.StartDate && x.EndDate == priceInfo.EndDate);
         }
+
+        [HttpGet("getprices")]
+        public async Task<IActionResult> Get([FromQuery] DateTime startDate, DateTime endDate)
+        {
+            var results = await _electricityContext.ElectricityDatas
+                .Where(x => x.StartDate >= startDate && x.EndDate <= endDate).ToListAsync();
+
+            return Ok(results);
+        }
     }
 
-    
+
 }
