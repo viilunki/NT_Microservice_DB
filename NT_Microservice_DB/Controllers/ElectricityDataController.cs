@@ -71,6 +71,50 @@ namespace NT_Microservice_DB.Controllers
 
             return Ok(results);
         }
+
+        [HttpGet("GetElectricityPricesFromRange")]
+        public async Task<IActionResult> Get([FromQuery] DateTime startDate, DateTime endDate, int pageSize, int Page)
+        {
+            var results = await _electricityContext.ElectricityDatas
+                .Where(x => x.StartDate >= startDate && x.EndDate <= endDate)
+                .Skip((Page - 1)*pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(results);
+        }
+
+        [HttpGet("GetPriceDifferenceFromRange")]
+        public async Task<IActionResult> Get([FromQuery] DateTime startDate, DateTime endDate, decimal fixedPrice)
+        {
+            var prices = await _electricityContext.ElectricityDatas
+                .Where(x => x.StartDate >= startDate && x.EndDate <= endDate)
+                .Select(x => x.Price)
+                .ToListAsync();
+
+            decimal priceSum = 0;
+
+            foreach (decimal price in prices){
+                priceSum += price;
+            }
+
+            decimal fixedPriceTotal = prices.Count() * fixedPrice;
+            decimal priceDifference = priceSum - fixedPriceTotal;
+
+
+            if (priceDifference > 0)
+            {
+                return Ok("Pörssisähkö on kalliimpi annetulla aikavälillä. Pörssisähkön kokonaishinta on " + priceSum.ToString() + " ja kiinteän sähkön kokonaishinta on " + fixedPriceTotal.ToString());
+            }
+            else if (priceDifference == 0) {
+                return Ok("Pörssisähkö ja kiinteä sähkö ovat annetalla aikavälillä saman hintaisia. Sähkön kokonaishinta on " + priceSum.ToString());
+            }
+            else
+            {
+                return Ok("Pörssisähkö on halvempi annetulla aikavälillä. Pörssisähkön kokonaishinta on " + priceSum.ToString() + " ja kiinteän sähkön kokonaishinta on " + fixedPriceTotal.ToString());
+            }
+        }
+
     }
 
 
